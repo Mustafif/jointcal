@@ -5,6 +5,32 @@ from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 import sklearn.model_selection as sklearn
 scaler = MinMaxScaler(feature_range=(0, 1))
 
+class CalibrationDataset(Dataset):
+    def __init__(self, dataframe):
+        self.data = dataframe
+        self.ivds = IVDataset(dataframe)
+        self.data["iv_model"] = [0 for _ in range(len(dataframe))]
+        self.base_features = ["S0", "m", "r", "T", "corp","sigma"]
+        self.target_scaler = scaler
+        self.garch_params = ["alpha", "beta", "omega", "gamma", "lambda"]
+        self.target_scaler.fit(self.data[self.garch_params])
+        self.N = len(self.data["V"])
+        self.M = len(self.data["sigma"])
+    def __len__(self):
+        return len(self.data)
+    def __getitem__(self, idx):
+        row = self.data.iloc[idx]
+        base_features = torch.tensor(row[self.base_features].values, dtype=torch.float32)
+        engineered_features = torch.tensor(row["iv_model"], dtype=torch.float32)
+        X = torch.cat([base_features, engineered_features])
+        garch_params = row[self.garch_params]
+        garch_df = pd.DataFrame(garch_params, columns=self.garch_params)
+        scaled = self.target_scaler.transform(garch_df)
+        Y = torch.tensor(scaled, dtype=torch.float32)
+        return X, Y, self.N, self.M
+
+
+
 class IVDataset(Dataset):
     def __init__(self, dataframe, is_train=False, target_scaler=None):
         self.data = dataframe
@@ -19,12 +45,13 @@ class IVDataset(Dataset):
 
         # Basic derived features
         self.data["strike"] = self.data["S0"] * self.data["m"]
+        self.data["returns"] = self.data["S0"].pct_change()
 
         # Advanced moneyness features
         self.data["log_moneyness"] = torch.log(torch.tensor(self.data["m"].values))
-        self.data["moneyness_squared"] = torch.tensor(self.data["m"].values) ** 2
-        self.data["moneyness_centered"] = torch.tensor(self.data["m"].values) - 1.0
-        self.data["atm_indicator"] = torch.exp(-10 * (torch.tensor(self.data["m"].values) - 1.0) ** 2)
+        # self.data["moneyness_squared"] = torch.tensor(self.data["m"].values) ** 2
+        # self.data["moneyness_centered"] = torch.tensor(self.data["m"].values) - 1.0
+        # self.data["atm_indicator"] = torch.exp(-10 * (torch.tensor(self.data["m"].values) - 1.0) ** 2)
 
         # Time-related features
         self.data["sqrt_T"] = torch.sqrt(torch.tensor(self.data["T"].values) + self.epsilon)
@@ -33,31 +60,31 @@ class IVDataset(Dataset):
         self.data["time_decay"] = torch.exp(-torch.tensor(self.data["T"].values))
 
         # GARCH-related features
-        self.data["log_gamma"] = torch.log(torch.tensor(self.data["gamma"].values) + self.epsilon)
-        self.data["sqrt_omega"] = torch.sqrt(torch.tensor(self.data["omega"].values) + self.epsilon)
-        self.data["log_omega"] = torch.log(torch.tensor(self.data["omega"].values) + self.epsilon)
-        self.data["alpha_beta"] = torch.tensor(self.data["alpha"].values) * torch.tensor(self.data["beta"].values)
-        self.data["alpha_gamma"] = torch.tensor(self.data["alpha"].values) * torch.tensor(self.data["gamma"].values)
-        self.data["beta_squared"] = torch.tensor(self.data["beta"].values) ** 2
+        # self.data["log_gamma"] = torch.log(torch.tensor(self.data["gamma"].values) + self.epsilon)
+        # self.data["sqrt_omega"] = torch.sqrt(torch.tensor(self.data["omega"].values) + self.epsilon)
+        # self.data["log_omega"] = torch.log(torch.tensor(self.data["omega"].values) + self.epsilon)
+        # self.data["alpha_beta"] = torch.tensor(self.data["alpha"].values) * torch.tensor(self.data["beta"].values)
+        # self.data["alpha_gamma"] = torch.tensor(self.data["alpha"].values) * torch.tensor(self.data["gamma"].values)
+        # self.data["beta_squared"] = torch.tensor(self.data["beta"].values) ** 2
 
         # Volatility persistence and regime features
-        persistence = torch.tensor(self.data["alpha"].values) + torch.tensor(self.data["beta"].values)
-        self.data["persistence"] = persistence
-        self.data["mean_reversion"] = 1.0 - persistence
-        self.data["unconditional_vol"] = torch.sqrt(torch.tensor(self.data["omega"].values) /
-                                                   (1.0 - persistence + self.epsilon))
+        # persistence = torch.tensor(self.data["alpha"].values) + torch.tensor(self.data["beta"].values)
+        # self.data["persistence"] = persistence
+        # self.data["mean_reversion"] = 1.0 - persistence
+        # self.data["unconditional_vol"] = torch.sqrt(torch.tensor(self.data["omega"].values) /
+        #                                            (1.0 - persistence + self.epsilon))
 
-        # Risk and return features
-        self.data["risk_free_T"] = torch.tensor(self.data["r"].values) * torch.tensor(self.data["T"].values)
-        self.data["lambda_scaled"] = torch.tensor(self.data["lambda"].values) * torch.sqrt(torch.tensor(self.data["T"].values))
+        # # Risk and return features
+        # self.data["risk_free_T"] = torch.tensor(self.data["r"].values) * torch.tensor(self.data["T"].values)
+        # self.data["lambda_scaled"] = torch.tensor(self.data["lambda"].values) * torch.sqrt(torch.tensor(self.data["T"].values))
 
-        # Interaction features for volatility modeling
-        self.data["m_T_interaction"] = torch.tensor(self.data["m"].values) * torch.tensor(self.data["T"].values)
-        self.data["vol_skew_proxy"] = torch.tensor(self.data["gamma"].values) * torch.tensor(self.data["lambda"].values)
+        # # Interaction features for volatility modeling
+        # self.data["m_T_interaction"] = torch.tensor(self.data["m"].values) * torch.tensor(self.data["T"].values)
+        # self.data["vol_skew_proxy"] = torch.tensor(self.data["gamma"].values) * torch.tensor(self.data["lambda"].values)
 
-        # Option value relative features
-        self.data["value_ratio"] = torch.tensor(self.data["V"].values) / (torch.tensor(self.data["S0"].values) + self.epsilon)
-        self.data["log_value"] = torch.log(torch.tensor(self.data["V"].values) + self.epsilon)
+        # # Option value relative features
+        # self.data["value_ratio"] = torch.tensor(self.data["V"].values) / (torch.tensor(self.data["S0"].values) + self.epsilon)
+        # self.data["log_value"] = torch.log(torch.tensor(self.data["V"].values) + self.epsilon)
 
         # Put-call indicator and its interactions
         corp_tensor = torch.tensor(self.data["corp"].values)
@@ -76,29 +103,30 @@ class IVDataset(Dataset):
         # Extract precomputed engineered features
         engineered_features = torch.tensor([
             row["strike"],
+            row["returns"],
             row["log_moneyness"],
-            row["moneyness_squared"],
-            row["moneyness_centered"],
-            row["atm_indicator"],
+            # row["moneyness_squared"],
+            # row["moneyness_centered"],
+            # row["atm_indicator"],
             row["sqrt_T"],
             row["log_T"],
             row["inv_T"],
             row["time_decay"],
-            row["log_gamma"],
-            row["sqrt_omega"],
-            row["log_omega"],
-            row["alpha_beta"],
-            row["alpha_gamma"],
-            row["beta_squared"],
-            row["persistence"],
-            row["mean_reversion"],
-            row["unconditional_vol"],
-            row["risk_free_T"],
-            row["lambda_scaled"],
-            row["m_T_interaction"],
-            row["vol_skew_proxy"],
-            row["value_ratio"],
-            row["log_value"],
+            # row["log_gamma"],
+            # row["sqrt_omega"],
+            # row["log_omega"],
+            # row["alpha_beta"],
+            # row["alpha_gamma"],
+            # row["beta_squared"],
+            # row["persistence"],
+            # row["mean_reversion"],
+            # row["unconditional_vol"],
+            # row["risk_free_T"],
+            # row["lambda_scaled"],
+            # row["m_T_interaction"],
+            # row["vol_skew_proxy"],
+            # row["value_ratio"],
+            # row["log_value"],
             row["is_call"],
             row["corp_m_interaction"],
             row["corp_T_interaction"]
@@ -106,7 +134,6 @@ class IVDataset(Dataset):
 
         # Concatenate base features with engineered features
         X = torch.cat([base_features, engineered_features])
-
         # Scale target variable
         target_value = row["sigma"]
         target_df = pd.DataFrame([[target_value]], columns=["sigma"])
@@ -114,6 +141,23 @@ class IVDataset(Dataset):
         Y = torch.tensor(scaled_target, dtype=torch.float32)
 
         return X, Y
+
+def train_test_split2(data, test_size=0.3, random_state=42):
+    # Split the data using sklearn's train_test_split
+    train_data, val_data = sklearn.train_test_split(
+        data,
+        test_size=test_size,
+        random_state=random_state,
+        shuffle=True
+    )
+
+    train_cal = CalibrationDataset(train_data)
+    train_iv = train_cal.ivds
+    test_cal = CalibrationDataset(val_data)
+    test_iv = test_cal.ivds
+
+    return train_cal, train_iv, test_cal, test_iv
+
 
 
 def train_test_split(data, test_size=0.3, random_state=42):

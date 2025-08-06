@@ -164,26 +164,7 @@ def train_val_split(dataset, val_size=0.2, random_state=42):
 
     return train_sampler, val_sampler
 
-
-def iv_main(dataset_train, dataset_test, name, params_path):
-    """
-    Main function for training and evaluating the AO-ANN model.
-
-    Args:
-        dataset_train: Training dataset
-        dataset_test: Test dataset
-        name: Name identifier for the model
-        params_path: Path to JSON file containing model hyperparameters
-
-    This function:
-    1. Sets up training environment (device, precision)
-    2. Loads hyperparameters from JSON
-    3. Creates data samplers and loaders for train/val/test
-    4. Initializes model, loss function and optimizer
-    5. Trains the model
-    6. Evaluates performance on train and test sets
-    7. Saves predictions and metrics to files
-    """
+def train_and_evaluate(dataset_train, dataset_test, params_path): 
     torch.set_float32_matmul_precision("high")
     num_workers = 6
     device = torch.device("cuda")
@@ -245,6 +226,32 @@ def iv_main(dataset_train, dataset_test, name, params_path):
     )
     test_loss, test_pred, test_target = evaluate_model(
         trained_model, test_loader, criterion, device
+    )
+    
+    return trained_model, train_loss, test_loss, train_pred, test_pred, train_target, test_target
+
+
+def iv_main(dataset_train, dataset_test, name, params_path):
+    """
+    Main function for training and evaluating the AO-ANN model.
+
+    Args:
+        dataset_train: Training dataset
+        dataset_test: Test dataset
+        name: Name identifier for the model
+        params_path: Path to JSON file containing model hyperparameters
+
+    This function:
+    1. Sets up training environment (device, precision)
+    2. Loads hyperparameters from JSON
+    3. Creates data samplers and loaders for train/val/test
+    4. Initializes model, loss function and optimizer
+    5. Trains the model
+    6. Evaluates performance on train and test sets
+    7. Saves predictions and metrics to files
+    """
+    trained_model, train_loss, test_loss, train_pred, test_pred, train_target, test_target = train_and_evaluate(
+        dataset_train, dataset_test, name, params_path
     )
 
     # Convert predictions and targets to plain floats

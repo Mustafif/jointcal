@@ -77,6 +77,17 @@ def HN_cond_var(N, omega, alpha, beta, gamma):
         h[t+1] = omega + beta*h[t] + alpha*(z - gamma*torch.sqrt(h[t]))**2
     return h
 
-def returns_loss(N, omega, alpha, beta, gamma):
+def returns_loss(N, omega, alpha, beta, gamma, lambda_, returns, r):
     h = HN_cond_var(N, omega, alpha, beta, gamma)
-    return -1/2 * torch.sum(torch.log(h) + torch.randn(1, device='cuda', dtype=torch.float32)**2)
+    sum = torch.sum(torch.log(h) + ((returns - r - lambda_*h + gamma)**2)/h)
+    return -1/2 * sum
+
+def implied_loss(implied_market, implied_model):
+    eps = 0.01
+    return -1/2*torch.sum(2*np.log(eps) + (implied_market - implied_model)**2 / eps**2)
+
+
+def joint_loss(implied_market, implied_model,M,N, omega, alpha, beta, gamma, lambda_, returns, r):
+    rl = returns_loss(N, omega, alpha, beta, gamma, lambda_, returns, r)
+    il = implied_loss(implied_market, implied_model)
+    return -(((N+M)/2*N)*rl + ((N+M)/2*M)*il)

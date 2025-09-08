@@ -1,0 +1,15 @@
+{
+  "lr_iv": 0.001,
+  "lr_joint": 0.0001,
+  "weight_decay": 0.01,
+  "batch_size": 256,
+  "batch_size_joint": 32,
+  "epochs_iv": 100,
+  "epochs_joint": 200,
+  "dropout_rate": 0.1,
+  "hidden_size": 200,
+  "num_hidden_layers": 6,
+  "num_workers": 4,
+  "val_size": 0.2,
+  "random_state": 42
+}

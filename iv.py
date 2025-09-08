@@ -7,7 +7,19 @@ import numpy as np
 import json
 from sklearn.model_selection import train_test_split
 from utils import save_model_checkpoint
-from model import IV
+from model import IV, IV_WideThenDeep, IV_GLU
+
+loss_fn = nn.HuberLoss()
+model_type = IV_GLU
+
+class MeanAbsoluteRelativeErrorLoss(nn.Module):
+    def __init__(self, epsilon=1e-8):
+        super().__init__()
+        self.epsilon = epsilon
+
+    def forward(self, pred, target):
+        return torch.mean(torch.abs((pred - target) / (target + self.epsilon)))
+
 
 def train_model(
     model: torch.nn.Module,
@@ -164,17 +176,102 @@ def train_val_split(dataset, val_size=0.2, random_state=42):
 
     return train_sampler, val_sampler
 
-def train_and_evaluate(dataset_train, dataset_test, params_path): 
+# def train_and_evaluate(dataset_train, dataset_test, params_path):
+#     torch.set_float32_matmul_precision("high")
+#     num_workers = 6
+#     device = torch.device("cuda")
+#     print(f"Using device: {device}")
+#     params = json.load(open(params_path))
+#     lr = params["lr"]
+#     weight_decay = params["weight_decay"]
+#     batch_size = params["batch_size"]
+
+#     epochs = params["epochs"]
+#     target_scaler = dataset_train.target_scaler
+
+#     # Create samplers
+#     train_sampler, val_sampler = train_val_split(dataset_train, val_size=0.2)
+#     test_sampler = RandomSampler(dataset_test)
+
+#     # Create data loaders
+#     train_loader = DataLoader(
+#         dataset_train,
+#         batch_size=batch_size,
+#         sampler=train_sampler,
+#         num_workers=num_workers,
+#         pin_memory=True,
+#     )
+#     val_loader = DataLoader(
+#         dataset_train,  # Using test dataset for validation
+#         batch_size=batch_size,
+#         sampler=val_sampler,
+#         num_workers=num_workers,
+#         pin_memory=True,
+#     )
+#     test_loader = DataLoader(
+#         dataset_test,
+#         batch_size=batch_size,
+#         sampler=test_sampler,
+#         num_workers=num_workers,
+#         pin_memory=True,
+#     )
+#     dropout_rate = params["dropout_rate"]
+#     # Model setup
+#     model = IV(dropout_rate=dropout_rate).to(device)
+#     #criterion = nn.HuberLoss()
+#     criterion = loss_fn
+
+#     optimizer = torch.optim.AdamW(
+#         model.parameters(),
+#         lr=lr,
+#         weight_decay=weight_decay,
+#         betas=(0.9, 0.999),
+#         eps=1e-8,
+#     )
+#     # Training
+#     trained_model, tl, vl = train_model(
+#         model, train_loader, val_loader, criterion, optimizer, device, epochs=epochs
+#     )
+
+#     # Evaluation
+#     train_loss, train_pred, train_target = evaluate_model(
+#         trained_model, train_loader, criterion, device
+#     )
+#     test_loss, test_pred, test_target = evaluate_model(
+#         trained_model, test_loader, criterion, device
+#     )
+
+#     return trained_model, train_loss, test_loss, train_pred, test_pred, train_target, test_target
+
+def train_and_evaluate(dataset_train, dataset_test, params_source):
+    """
+    Train and evaluate the model with parameters from either a dict or JSON file path.
+
+    Args:
+        dataset_train: Training dataset
+        dataset_test: Test dataset
+        params_source: Either a dict of parameters or a path to a JSON file
+    """
+
+    # Accept both dict and JSON path
+    if isinstance(params_source, str):
+        params = json.load(open(params_source))
+    elif isinstance(params_source, dict):
+        params = params_source
+    else:
+        raise TypeError("params_source must be a dict or a JSON file path")
+
     torch.set_float32_matmul_precision("high")
     num_workers = 6
     device = torch.device("cuda")
     print(f"Using device: {device}")
-    params = json.load(open(params_path))
+
     lr = params["lr"]
     weight_decay = params["weight_decay"]
     batch_size = params["batch_size"]
-
     epochs = params["epochs"]
+    dropout_rate = params["dropout_rate"]
+
     target_scaler = dataset_train.target_scaler
 
     # Create samplers
@@ -190,7 +287,7 @@ def train_and_evaluate(dataset_train, dataset_test, params_path):
         pin_memory=True,
     )
     val_loader = DataLoader(
-        dataset_train,  # Using test dataset for validation
+        dataset_train,
         batch_size=batch_size,
         sampler=val_sampler,
         num_workers=num_workers,
@@ -203,10 +300,10 @@ def train_and_evaluate(dataset_train, dataset_test, params_path):
         num_workers=num_workers,
         pin_memory=True,
     )
-    dropout_rate = params["dropout_rate"]
+
     # Model setup
-    model = IV(dropout_rate=dropout_rate).to(device)
-    criterion = nn.HuberLoss()
+    model = model_type(dropout_rate=dropout_rate).to(device)
+    criterion = loss_fn
 
     optimizer = torch.optim.AdamW(
         model.parameters(),
@@ -215,6 +312,7 @@ def train_and_evaluate(dataset_train, dataset_test, params_path):
         betas=(0.9, 0.999),
         eps=1e-8,
     )
+
     # Training
     trained_model, tl, vl = train_model(
         model, train_loader, val_loader, criterion, optimizer, device, epochs=epochs
@@ -227,7 +325,7 @@ def train_and_evaluate(dataset_train, dataset_test, params_path):
     test_loss, test_pred, test_target = evaluate_model(
         trained_model, test_loader, criterion, device
     )
-    
+
     return trained_model, train_loss, test_loss, train_pred, test_pred, train_target, test_target
 
 
@@ -251,8 +349,9 @@ def iv_main(dataset_train, dataset_test, name, params_path):
     7. Saves predictions and metrics to files
     """
     trained_model, train_loss, test_loss, train_pred, test_pred, train_target, test_target = train_and_evaluate(
-        dataset_train, dataset_test, name, params_path
+        dataset_train, dataset_test, params_path
     )
+    target_scaler = dataset_train.target_scaler
 
     # Convert predictions and targets to plain floats
     train_pred = [float(x) for x in train_pred]
@@ -281,4 +380,4 @@ def iv_main(dataset_train, dataset_test, name, params_path):
 
     # Save metrics
     metrics = {"in_sample": train_loss_details, "out_of_sample": test_loss_details}
-    save_model_checkpoint(trained_model, name, metrics, tl, vl)
+    save_model_checkpoint(trained_model, name, metrics, train_loss, test_loss)

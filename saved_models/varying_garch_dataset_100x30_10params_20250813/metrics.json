@@ -1,0 +1,28 @@
+{
+    "in_sample": {
+        "total_samples": 3360,
+        "Mean of Predicted": NaN,
+        "Mean of Targets": 0.19557121694643945,
+        "MSE": NaN,
+        "MAE": NaN,
+        "RMSE": NaN,
+        "R^2": NaN,
+        "MRE": NaN,
+        "min_error": NaN,
+        "max_error": NaN,
+        "std_error": NaN
+    },
+    "out_of_sample": {
+        "total_samples": 1800,
+        "Mean of Predicted": NaN,
+        "Mean of Targets": 0.19624537025617209,
+        "MSE": NaN,
+        "MAE": NaN,
+        "RMSE": NaN,
+        "R^2": NaN,
+        "MRE": NaN,
+        "min_error": NaN,
+        "max_error": NaN,
+        "std_error": NaN
+    }
+}

@@ -4,7 +4,6 @@ from datetime import datetime
 import torch
 import matplotlib.pyplot as plt
 
-
 def save_model_checkpoint(trained_model, name, metrics, tl, vl):
     """
     Save a trained model checkpoint along with its metrics and learning curves
@@ -35,9 +34,9 @@ def save_model_checkpoint(trained_model, name, metrics, tl, vl):
     with open(metrics_path, "w") as f:
         json.dump(metrics, f, indent=4)
 
-        # Save model
-    scripted_model = torch.jit.script(trained_model)
-    scripted_model.save(model_path)
+    # Save model
+    torch.save(trained_model, model_path)
+
 
     # Save learning curve
     plt.figure(figsize=(8, 6))

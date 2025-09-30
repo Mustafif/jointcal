@@ -54,3 +54,4 @@ def save_model_checkpoint(trained_model, name, metrics, tl, vl):
     print("├── 📄 metrics.json")
     print("└── 🧠 model.pt\n")
     print("└── 📉 learning_curve.png\n")
+

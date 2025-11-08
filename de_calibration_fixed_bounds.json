@@ -1,0 +1,85 @@
+{
+  "configuration": {
+    "popsize": 50,
+    "max_iter": 500,
+    "mutation": 0.8,
+    "crossover": 0.7,
+    "seed": 42,
+    "device": "cuda"
+  },
+  "dataset_info": {
+    "num_options": 30000,
+    "num_returns": 1259,
+    "options_file": "joint_dataset/scalable_hn_dataset_250x60.csv",
+    "returns_file": "joint_dataset/assetprices.csv"
+  },
+  "true_parameters": {
+    "omega": 1e-06,
+    "alpha": 1.33e-06,
+    "beta": 0.8,
+    "gamma": 5.0,
+    "lambda": 0.2
+  },
+  "calibrated_parameters": {
+    "omega": 9.999927897297312e-06,
+    "alpha": 9.550029062665999e-06,
+    "beta": 0.9900000095367432,
+    "gamma": 32.14478302001953,
+    "lambda": 0.009999999776482582
+  },
+  "errors": {
+    "l2_error": 27.146112893152825,
+    "absolute_errors": {
+      "omega": 8.999927897297311e-06,
+      "alpha": 8.220029062666e-06,
+      "beta": 0.19000000953674312,
+      "gamma": 27.14478302001953,
+      "lambda": 0.19000000022351743
+    },
+    "relative_errors_percent": {
+      "omega": 899.9927897297312,
+      "alpha": 618.047297944812,
+      "beta": 23.75000119209289,
+      "gamma": 542.8956604003906,
+      "lambda": 95.00000011175871
+    }
+  },
+  "validation": {
+    "omega_positive": true,
+    "stationarity": true,
+    "persistence": 0.9900095462799072,
+    "unconditional_variance": 0.0010009483667090535,
+    "empirical_variance": 0.1205274686217308
+  },
+  "convergence_history": [
+    1318047104.0,
+    1317850368.0,
+    1317850368.0,
+    1317850368.0,
+    1317815808.0,
+    1317721600.0,
+    1317721600.0,
+    1317677312.0,
+    1317652608.0,
+    1317652608.0,
+    1317652608.0,
+    1317652608.0,
+    1317652608.0,
+    1317652608.0,
+    1317651456.0,
+    1317651456.0,
+    1317651456.0,
+    1317651456.0,
+    1317651456.0,
+    1317651456.0,
+    1317651456.0,
+    1317651456.0,
+    1317651456.0,
+    1317651456.0
+  ],
+  "timing": {
+    "total_seconds": 101.51358699798584,
+    "iterations_completed": 24
+  },
+  "final_objective_value": 1317651456.0
+}

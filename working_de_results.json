@@ -1,0 +1,28 @@
+{
+  "method": "simple_differential_evolution",
+  "calibrated_parameters": {
+    "omega": 5.06956848767004e-06,
+    "alpha": 0.019783567637205124,
+    "beta": 0.8818448781967163,
+    "gamma": 0.5378324389457703,
+    "lambda": 0.051857441663742065
+  },
+  "true_parameters": {
+    "omega": 1e-06,
+    "alpha": 1.33e-06,
+    "beta": 0.8,
+    "gamma": 5.0,
+    "lambda": 0.2
+  },
+  "l2_error": 4.465419966984583,
+  "time_seconds": 10.091145753860474,
+  "convergence_history": [
+    1.3176522254943848,
+    1.3176522254943848
+  ],
+  "validation": {
+    "omega_positive": true,
+    "stationary": true,
+    "persistence": 0.9016284346580505
+  }
+}

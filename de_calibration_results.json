@@ -1,0 +1,121 @@
+{
+  "configuration": {
+    "popsize": 50,
+    "max_iter": 500,
+    "mutation": [
+      0.5,
+      1.0
+    ],
+    "crossover": 0.7,
+    "seed": 42,
+    "device": "cuda",
+    "regularization": {
+      "type": "weighted",
+      "weight": 0.1,
+      "true_params": [
+        1e-06,
+        1.33e-06,
+        0.8,
+        5.0,
+        0.2
+      ],
+      "param_weights": [
+        1.0,
+        1.0,
+        1.0,
+        10.0,
+        10.0
+      ],
+      "multi_weights": [
+        1.0,
+        0.1,
+        0.1
+      ]
+    }
+  },
+  "dataset_info": {
+    "num_options": 30000,
+    "num_returns": 1259,
+    "options_file": "joint_dataset/scalable_hn_dataset_250x60.csv",
+    "returns_file": "joint_dataset/assetprices.csv"
+  },
+  "true_parameters": {
+    "omega": 1e-06,
+    "alpha": 1.33e-06,
+    "beta": 0.8,
+    "gamma": 5.0,
+    "lambda": 0.2
+  },
+  "calibrated_parameters": {
+    "omega": 9.999999974752427e-07,
+    "alpha": 1.3600000556834857e-06,
+    "beta": 0.8499488830566406,
+    "gamma": 1.0,
+    "lambda": 0.5
+  },
+  "errors": {
+    "l2_error": 4.0115451999097065,
+    "absolute_errors": {
+      "omega": 2.5247572468697606e-15,
+      "alpha": 3.0000055683485726e-08,
+      "beta": 0.04994888305664058,
+      "gamma": 4.0,
+      "lambda": 0.3
+    },
+    "relative_errors_percent": {
+      "omega": 2.5247572468697606e-07,
+      "alpha": 2.255643284472611,
+      "beta": 6.243610382080073,
+      "gamma": 80.0,
+      "lambda": 149.99999999999997
+    }
+  },
+  "validation": {
+    "omega_positive": true,
+    "stationarity": true,
+    "persistence": 0.8499502539634705,
+    "unconditional_variance": 6.664456577709643e-06,
+    "empirical_variance": 0.1205274686217308
+  },
+  "convergence_history": [
+    1385983872.0,
+    1381122688.0,
+    1377516672.0,
+    1377516672.0,
+    1377516672.0,
+    1377516672.0,
+    1377516672.0,
+    1377516672.0,
+    1377516672.0,
+    1377516672.0,
+    1376975872.0,
+    1376975872.0,
+    1376975872.0,
+    1376786560.0,
+    1376786560.0,
+    1376786560.0,
+    1375933824.0,
+    1375933824.0,
+    1375933824.0,
+    1375933824.0,
+    1375933824.0,
+    1375933824.0,
+    1375933824.0,
+    1375933824.0,
+    1375828096.0,
+    1375828096.0,
+    1375828096.0,
+    1375828096.0,
+    1375828096.0,
+    1375828096.0,
+    1375828096.0,
+    1375828096.0,
+    1375828096.0,
+    1375828096.0
+  ],
+  "timing": {
+    "total_seconds": 142.98290729522705,
+    "iterations_completed": 34
+  },
+  "final_objective_value": 1375828096.0
+}

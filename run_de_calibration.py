@@ -6,17 +6,20 @@ This script provides an easy way to run DE calibration with configurable paramet
 Usage: python run_de_calibration.py
 """
 
-import torch
-import numpy as np
-import time
-import json
 import argparse
+import json
+import time
 from pathlib import Path
+
+import numpy as np
+import torch
+
+from cal_loss import Calibration_Loss
+from calibrate2_de import calibrate_de
 
 # Import our modules
 from dataset2 import cal_dataset
-from calibrate2_de import calibrate_de
-from cal_loss import Calibration_Loss
+
 
 def main():
     """Main function to run DE calibration"""
@@ -36,7 +39,7 @@ def main():
                        help='DE population size (default: 50)')
     parser.add_argument('--max-iter', type=int, default=500,
                        help='Maximum iterations (default: 500)')
-    parser.add_argument('--mutation', type=str, default='0.5,1.0',
+    parser.add_argument('--mutation', type=float, default=0.95,
                        help='DE mutation factor or range (default: 0.5,1.0)')
     parser.add_argument('--crossover', type=float, default=0.7,
                        help='DE crossover probability (default: 0.7)')
@@ -46,15 +49,6 @@ def main():
                        help='Output file for results (default: de_calibration_results.json)')
 
     # Regularization options
-    parser.add_argument('--reg-type', type=str, default=None,
-                       choices=['l2', 'l1', 'weighted', 'bounds', 'combined', 'adaptive', 'multi'],
-                       help='Regularization type (default: None)')
-    parser.add_argument('--reg-weight', type=float, default=0.1,
-                       help='Regularization weight (default: 0.1)')
-    parser.add_argument('--reg-param-weights', type=str, default='1.0,1.0,1.0,5.0,5.0',
-                       help='Parameter weights for weighted regularization (default: 1.0,1.0,1.0,5.0,5.0)')
-    parser.add_argument('--reg-multi-weights', type=str, default='1.0,0.1,0.1',
-                       help='Multi-objective weights [data,param,constraint] (default: 1.0,0.1,0.1)')
     parser.add_argument('--cpu', action='store_true',
                        help='Force CPU usage (default: auto-detect)')
     parser.add_argument('--verbose', action='store_true',
@@ -80,40 +74,11 @@ def main():
     print(f"   Returns data: {args.returns_data}")
     print(f"   Population size: {args.popsize}")
     print(f"   Max iterations: {args.max_iter}")
-    # Parse mutation parameter
-    if ',' in args.mutation:
-        mutation_range = tuple(map(float, args.mutation.split(',')))
-        mutation_str = f"range {mutation_range}"
-    else:
-        mutation_range = float(args.mutation)
-        mutation_str = f"fixed {mutation_range}"
 
-    print(f"   Mutation factor: {mutation_str}")
+    # print(f"   Mutation factor: {mutation_str}")
     print(f"   Crossover prob: {args.crossover}")
     print(f"   Random seed: {args.seed}")
     print(f"   Output file: {args.output}")
-
-    # Parse regularization options
-    regularization = None
-    if args.reg_type is not None:
-        param_weights = list(map(float, args.reg_param_weights.split(',')))
-        multi_weights = list(map(float, args.reg_multi_weights.split(',')))
-
-        regularization = {
-            'type': args.reg_type,
-            'weight': args.reg_weight,
-            'true_params': [1e-6, 1.33e-6, 0.8, 5.0, 0.2],
-            'param_weights': param_weights,
-            'multi_weights': multi_weights
-        }
-
-        print(f"   Regularization: {args.reg_type} (weight: {args.reg_weight})")
-        if args.reg_type == 'weighted':
-            print(f"   Parameter weights: {param_weights}")
-        elif args.reg_type == 'multi':
-            print(f"   Multi-objective weights: {multi_weights}")
-    else:
-        print(f"   Regularization: None")
 
     try:
         # Check if files exist
@@ -164,13 +129,11 @@ def main():
         calibrated_params, convergence_history = calibrate_de(
             model=model,
             dataset=dataset,
-            popsize=args.popsize,
-            max_iter=args.max_iter,
-            mutation=mutation_range,
-            crossover=args.crossover,
-            seed=args.seed,
-            device=device,
-            regularization=regularization
+            # popsize=args.popsize,
+            # max_iter=args.max_iter,
+            # mutation=0.95,
+            # crossover=args.crossover,
+            # seed=args.seed,
         )
 
         end_time = time.time()
@@ -212,72 +175,71 @@ def main():
             print(f"   Var ratio: {unconditional_var/empirical_var:.4f}")
 
         # Save results
-        results = {
-            'configuration': {
-                'popsize': args.popsize,
-                'max_iter': args.max_iter,
-                'mutation': mutation_range,
-                'crossover': args.crossover,
-                'seed': args.seed,
-                'device': str(device),
-                'regularization': regularization
-            },
-            'dataset_info': {
-                'num_options': len(dataset),
-                'num_returns': len(dataset.returns),
-                'options_file': args.options_data,
-                'returns_file': args.returns_data
-            },
-            'true_parameters': dict(zip(param_names, true_params.tolist())),
-            'calibrated_parameters': dict(zip(param_names, calibrated_params.tolist())),
-            'errors': {
-                'l2_error': float(l2_error),
-                'absolute_errors': dict(zip(param_names, abs_errors.tolist())),
-                'relative_errors_percent': dict(zip(param_names, rel_errors.tolist()))
-            },
-            'validation': {
-                'omega_positive': bool(omega_positive),
-                'stationarity': bool(stationarity),
-                'persistence': float(persistence),
-                'unconditional_variance': float(unconditional_var) if stationarity else None,
-                'empirical_variance': float(empirical_var)
-            },
-            'convergence_history': convergence_history,
-            'timing': {
-                'total_seconds': elapsed_time,
-                'iterations_completed': len(convergence_history)
-            },
-            'final_objective_value': convergence_history[-1] if convergence_history else None
-        }
+        # results = {
+        #     'configuration': {
+        #         'popsize': args.popsize,
+        #         'max_iter': args.max_iter,
+        #         'mutation': mutation_range,
+        #         'crossover': args.crossover,
+        #         'seed': args.seed,
+        #         'device': str(device),
+        #     },
+        #     'dataset_info': {
+        #         'num_options': len(dataset),
+        #         'num_returns': len(dataset.returns),
+        #         'options_file': args.options_data,
+        #         'returns_file': args.returns_data
+        #     },
+        #     'true_parameters': dict(zip(param_names, true_params.tolist())),
+        #     'calibrated_parameters': dict(zip(param_names, calibrated_params.tolist())),
+        #     'errors': {
+        #         'l2_error': float(l2_error),
+        #         'absolute_errors': dict(zip(param_names, abs_errors.tolist())),
+        #         'relative_errors_percent': dict(zip(param_names, rel_errors.tolist()))
+        #     },
+        #     'validation': {
+        #         'omega_positive': bool(omega_positive),
+        #         'stationarity': bool(stationarity),
+        #         'persistence': float(persistence),
+        #         'unconditional_variance': float(unconditional_var) if stationarity else None,
+        #         'empirical_variance': float(empirical_var)
+        #     },
+        #     'convergence_history': convergence_history,
+        #     'timing': {
+        #         'total_seconds': elapsed_time,
+        #         'iterations_completed': len(convergence_history)
+        #     },
+        #     'final_objective_value': convergence_history[-1] if convergence_history else None
+        # }
 
-        # Save to file
-        with open(args.output, 'w') as f:
-            json.dump(results, f, indent=2)
+        # # Save to file
+        # with open(args.output, 'w') as f:
+        #     json.dump(results, f, indent=2)
 
-        print(f"\n📁 Results saved to: {args.output}")
+        # print(f"\n📁 Results saved to: {args.output}")
 
-        # Create convergence plot if matplotlib available
-        try:
-            import matplotlib.pyplot as plt
+        # # Create convergence plot if matplotlib available
+        # try:
+        #     import matplotlib.pyplot as plt
 
-            plt.figure(figsize=(10, 6))
-            plt.plot(convergence_history, 'b-', linewidth=2)
-            plt.xlabel('Iteration')
-            plt.ylabel('Objective Function Value')
-            plt.title('Differential Evolution Convergence')
-            plt.grid(True, alpha=0.3)
-            plt.yscale('log')
+        #     plt.figure(figsize=(10, 6))
+        #     plt.plot(convergence_history, 'b-', linewidth=2)
+        #     plt.xlabel('Iteration')
+        #     plt.ylabel('Objective Function Value')
+        #     plt.title('Differential Evolution Convergence')
+        #     plt.grid(True, alpha=0.3)
+        #     plt.yscale('log')
 
-            plot_file = args.output.replace('.json', '_convergence.png')
-            plt.savefig(plot_file, dpi=300, bbox_inches='tight')
-            plt.close()
+        #     plot_file = args.output.replace('.json', '_convergence.png')
+        #     plt.savefig(plot_file, dpi=300, bbox_inches='tight')
+        #     plt.close()
 
-            print(f"📈 Convergence plot saved to: {plot_file}")
+        #     print(f"📈 Convergence plot saved to: {plot_file}")
 
-        except ImportError:
-            print("📈 Matplotlib not available, skipping convergence plot")
-        except Exception as e:
-            print(f"⚠️  Could not create convergence plot: {e}")
+        # except ImportError:
+        #     print("📈 Matplotlib not available, skipping convergence plot")
+        # except Exception as e:
+        #     print(f"⚠️  Could not create convergence plot: {e}")
 
         # Summary
         print(f"\n🎉 Calibration Summary:")

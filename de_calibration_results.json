@@ -8,30 +8,7 @@
     ],
     "crossover": 0.7,
     "seed": 42,
-    "device": "cuda",
-    "regularization": {
-      "type": "weighted",
-      "weight": 0.1,
-      "true_params": [
-        1e-06,
-        1.33e-06,
-        0.8,
-        5.0,
-        0.2
-      ],
-      "param_weights": [
-        1.0,
-        1.0,
-        1.0,
-        10.0,
-        10.0
-      ],
-      "multi_weights": [
-        1.0,
-        0.1,
-        0.1
-      ]
-    }
+    "device": "cuda"
   },
   "dataset_info": {
     "num_options": 30000,
@@ -48,33 +25,33 @@
   },
   "calibrated_parameters": {
     "omega": 9.999999974752427e-07,
-    "alpha": 1.3600000556834857e-06,
-    "beta": 0.8499488830566406,
-    "gamma": 1.0,
-    "lambda": 0.5
+    "alpha": 1.359414341095544e-06,
+    "beta": 0.8499898314476013,
+    "gamma": 1.6150341033935547,
+    "lambda": 0.4268990159034729
   },
   "errors": {
-    "l2_error": 4.0115451999097065,
+    "l2_error": 3.3929303364282033,
     "absolute_errors": {
       "omega": 2.5247572468697606e-15,
-      "alpha": 3.0000055683485726e-08,
-      "beta": 0.04994888305664058,
-      "gamma": 4.0,
-      "lambda": 0.3
+      "alpha": 2.941434109554396e-08,
+      "beta": 0.049989831447601274,
+      "gamma": 3.3849658966064453,
+      "lambda": 0.2268990159034729
     },
     "relative_errors_percent": {
       "omega": 2.5247572468697606e-07,
-      "alpha": 2.255643284472611,
-      "beta": 6.243610382080073,
-      "gamma": 80.0,
-      "lambda": 149.99999999999997
+      "alpha": 2.211604593649922,
+      "beta": 6.2487289309501595,
+      "gamma": 67.6993179321289,
+      "lambda": 113.44950795173642
     }
   },
   "validation": {
     "omega_positive": true,
     "stationarity": true,
-    "persistence": 0.8499502539634705,
-    "unconditional_variance": 6.664456577709643e-06,
+    "persistence": 0.8499912023544312,
+    "unconditional_variance": 6.666275567113189e-06,
     "empirical_variance": 0.1205274686217308
   },
   "convergence_history": [
@@ -114,7 +91,7 @@
     1375828096.0
   ],
   "timing": {
-    "total_seconds": 142.98290729522705,
+    "total_seconds": 134.9645962715149,
     "iterations_completed": 34
   },
   "final_objective_value": 1375828096.0

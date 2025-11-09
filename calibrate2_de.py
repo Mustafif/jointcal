@@ -27,6 +27,7 @@ class DifferentialEvolution:
         """
         self.bounds = torch.tensor(bounds, device=device, dtype=torch.float32)
         self.popsize = popsize
+        self.num_top = min(5, popsize // 10)  # Track top 5 or 10% of population
 
         # Handle mutation as either single value or range
         if isinstance(mutation, (tuple, list)):
@@ -50,6 +51,8 @@ class DifferentialEvolution:
         self.best_idx = 0
         self.best_fitness = float('inf')
         self.best_params = None
+        self.top_indices = []  # Track indices of top candidates
+        self.top_params = []   # Track parameters of top candidates
 
     def _initialize_population(self):
         """Initialize population within bounds"""
@@ -145,6 +148,17 @@ class DifferentialEvolution:
                         self.best_fitness = trial_fitness.item()
                         self.best_idx = i
                         self.best_params = trial.clone()
+
+                        # Update top candidates
+                        if len(self.top_params) < self.num_top:
+                            self.top_indices.append(i)
+                            self.top_params.append(trial.clone())
+                        else:
+                            # Replace worst top candidate if better
+                            worst_top_idx = torch.argmax(self.fitness[self.top_indices])
+                            if trial_fitness < self.fitness[self.top_indices[worst_top_idx]]:
+                                self.top_indices[worst_top_idx] = i
+                                self.top_params[worst_top_idx] = trial.clone()
                 else:
                     new_population[i] = self.population[i]
                     new_fitness[i] = self.fitness[i]
@@ -167,7 +181,15 @@ class DifferentialEvolution:
                         print(f"Converged after {iteration+1} iterations")
                     break
 
-        return self.best_params, self.best_fitness, convergence_history
+        # Calculate average of top candidates for final result
+        if len(self.top_params) > 0:
+            top_params_stack = torch.stack(self.top_params)
+            averaged_params = torch.mean(top_params_stack, dim=0)
+            # Project averaged params to ensure they're valid
+            averaged_params = project_parameters(averaged_params)
+            return averaged_params, self.best_fitness, convergence_history
+        else:
+            return self.best_params, self.best_fitness, convergence_history
 
 
 def project_parameters(params):
@@ -180,8 +202,8 @@ def project_parameters(params):
     return torch.stack([omega, alpha, beta, gamma, lambda_param])
 
 
-def calibrate_de(model, dataset, popsize=50, max_iter=1000, mutation=(0.5, 1.0),
-                 crossover=0.7, seed=42, device=None):
+def calibrate_de(model, dataset, popsize=100, max_iter=500, mutation=0.95,
+                 crossover=0.7, seed=42):
     """
     Calibrate GARCH parameters using Differential Evolution
 
@@ -204,7 +226,7 @@ def calibrate_de(model, dataset, popsize=50, max_iter=1000, mutation=(0.5, 1.0),
     Returns:
         Calibrated parameters as numpy array
     """
-    device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model.eval().to(device)
     for p in model.parameters():
@@ -272,9 +294,9 @@ def main():
 
         calibrated_params, convergence_history = calibrate_de(
             model, dataset,
-            popsize=50,           # Population size
+            popsize=100,           # Population size
             max_iter=500,         # Maximum iterations
-            mutation=0.8,  # Mutation factor range
+            mutation=0.95,  # Mutation factor range
             crossover=0.7,        # Crossover probability
             seed=42,              # For reproducibility
         )

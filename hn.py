@@ -1,14 +1,7 @@
-import numpy as np
-import pandas as pd
-from scipy.optimize import minimize
-from scipy.stats.distributions import alpha
-from arch import arch_model
-
 # class HestonNandiGARCH:
 #     """
 #     A class to fit the full Heston-Nandi GARCH(1,1) model (with risk premium λ)
 #     to a series of log returns.
-
 #     Mean Equation: r_t = λ * h_t + ε_t
 #     Variance Process: h_t = ω + β * h_{t-1} + α * (z_{t-1} - γ * sqrt(h_{t-1}))^2
 #     where ε_t = sqrt(h_t) * z_t and z_t ~ N(0,1)
@@ -22,49 +15,37 @@ from arch import arch_model
 #         self.lambda_: np.float64 = np.float64(0.0)
 #         self.fitted_params = None
 #         self.log_likelihood = None
-
 #     def _log_likelihood(self, params):
 #         """
 #         Calculates the negative log-likelihood for the GARCH model.
 #         """
 #         # UPDATED: Unpack five parameters
 #         omega, alpha, beta, gamma, lambda_ = params
-
 #         T = len(self.returns)
 #         h = np.zeros(T)
 #         z = np.random.randn(T)
 #         # h[0] = np.var(self.returns)
 #         h[0] = (omega + alpha)/(1-beta-alpha*gamma**2)
-
 #         for t in range(1, T):
 #             h_prev = max(h[t-1], 1e-9)
-
 #             # UPDATED: The standardized residual z depends on lambda
 #             # innovation_prev = self.returns[t-1] - lambda_ * h_prev
 #             # z_prev = innovation_prev / np.sqrt(h_prev)
-
-
 #             h[t] = omega + beta * h_prev + alpha * (z[t] - gamma * np.sqrt(h_prev))**2
-
 #         # h = np.maximum(h, 1e-9)
 #         # z = np.random.normal(0, 1, len(h))
 #         # term = z*np.sqrt(h)-0.5*h+gamma
-
 #         # log_likelihoods = -0.5 * (np.sum(np.log(h) + (np.pow(term, 2)/h)))
-
 #         # UPDATED: The innovation ε_t = r_t - λh_t is used in the likelihood
 #         # innovations = self.returns - lambda_ * h
 #         log_likelihoods = np.log(2 * np.pi) + np.log(h) + np.power(z, 2)
-
 #         return -0.5 * np.sum(log_likelihoods)
-
 #     def fit(self, initial_params=None):
 #         """
 #         Fits the GARCH model parameters using scipy's optimizer.
 #         """
 #         garch11 = arch_model(returns, vol='GARCH', p=1, q=1, dist='normal')
 #         res = garch11.fit(disp="off")
-
 #         alpha0 = res.params['alpha[1]']
 #         beta0  = res.params['beta[1]']
 #         omega0 = res.params['omega']
@@ -73,15 +54,12 @@ from arch import arch_model
 #         if initial_params is None:
 #             # UPDATED: Initial guess for 5 parameters [ω, α, β, γ, λ]
 #             initial_params = np.array([np.var(self.returns) * omega0, alpha0, beta0, gamma0, lam0])
-
 #         # UPDATED: Bounds for 5 parameters
 #         bounds = [(1e-9, 1e-3), (1e-6,0.2), (0.5, 0.999), (-2, 2), (-5, 5)]
-
 #         result = minimize(self._log_likelihood,
 #                           initial_params,
 #                           method='L-BFGS-B',
 #                           bounds=bounds)
-
 #         if result.success:
 #             # UPDATED: Store all five parameters
 #             self.omega, self.alpha, self.beta, self.gamma, self.lambda_ = result.x
@@ -90,9 +68,7 @@ from arch import arch_model
 #             print("Optimization successful!")
 #         else:
 #             print(f"Optimization failed: {result.message}")
-
 #         return result
-
 #     def summary(self):
 #         """
 #         Prints a summary of the fitted model parameters.
@@ -100,7 +76,6 @@ from arch import arch_model
 #         if self.fitted_params is None:
 #             print("Model has not been fitted yet. Please call the .fit() method first.")
 #             return
-
 #         print("\nHeston-Nandi GARCH(1,1) Model Results")
 #         print("="*40)
 #         print(f"Log-Likelihood: {self.log_likelihood:.4f}")
@@ -112,10 +87,10 @@ from arch import arch_model
 #         # UPDATED: Print lambda
 #         print(f"  λ (lambda):{self.lambda_:.6f}")
 #         print("="*40)
-
 import numpy as np
-from scipy.optimize import minimize
 from arch import arch_model
+from scipy.optimize import differential_evolution, minimize
+
 
 class HestonNandiGARCH:
     """
@@ -146,16 +121,14 @@ class HestonNandiGARCH:
 
         # Initialize conditional variance
         h = np.zeros(T)
-        h[0] = np.var(r) if np.var(r) > 0 else 1e-6
+        # h[0] = np.var(r) if np.var(r) > 0 else 1e-6
+        h[0] = (omega + alpha) / (1 - beta - alpha * gamma**2 + 1e-8)
 
+        z = np.random.randn(T)
         # Compute variance recursion
         for t in range(1, T):
-            z_prev = (r[t-1] - lambda_ * h[t-1]) / np.sqrt(h[t-1])  # standardized residual
-            h[t] = omega + beta * h[t-1] + alpha * (z_prev - gamma * np.sqrt(h[t-1]))**2
-            h[t] = max(h[t], 1e-9)  # numerical safeguard
-
-        # Compute standardized residuals
-        z = (r - lambda_ * h) / np.sqrt(h)
+            h_prev = h[t-1]
+            h[t] = omega + beta*h_prev + alpha*(z[t-1] - gamma *np.sqrt(h_prev))**2
 
         # Gaussian log-likelihood
         loglik = -0.5 * np.sum(np.log(2 * np.pi) + np.log(h) + z**2)
@@ -181,12 +154,19 @@ class HestonNandiGARCH:
             initial_params = np.array([omega0, alpha0, beta0, gamma0, lam0])
 
         bounds = [
-            (1e-9, 1e-3),   # ω
-            (1e-6, 0.2),    # α
-            (0.5, 0.999),   # β
-            (-2.0, 2.0),    # γ
-            (-5.0, 5.0)     # λ
+            (1e-7, 1e-6),   # ω
+            (1.15e-6, 1.36e-6),    # α
+            (0.75, 0.85),   # β
+            (1,5),    # γ
+            (0.2, 0.5)     # λ
         ]
+
+        # result = differential_evolution(self._log_likelihood,
+        #                                bounds=bounds,
+        #                                strategy='best1bin',
+        #                                popsize=100,
+        #                                maxiter=500,
+        #                                tol=1e-6)
 
         result = minimize(self._log_likelihood,
                           initial_params,
@@ -198,6 +178,10 @@ class HestonNandiGARCH:
             self.fitted_params = result.x
             self.log_likelihood = -result.fun
             print("Optimization successful.")
+            self.summary()
+            print("Two-norm error:")
+            true_vals = np.array([1e-6, 1.33e-6, 0.8, 5, 0.2])
+            print(np.linalg.norm(true_vals - self.fitted_params, ord=2))
         else:
             print(f"Optimization failed: {result.message}")
 

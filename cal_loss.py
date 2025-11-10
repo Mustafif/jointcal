@@ -146,8 +146,8 @@ def ll_returns_torch(returns, params):
     h = torch.stack(h_list)
 
     # Compute log-likelihood using standard-normal z
-    loglik = -0.5 * (torch.log(torch.tensor(2) * torch.pi) + torch.log(h) + ((returns - lambda_ * h)/torch.sqrt(h))**2)
-    return torch.sum(loglik)
+    logik = -0.5 * torch.sum(torch.log(torch.tensor(2) * torch.pi) + torch.log(h) + z**2)
+    return logik
 
 
 def ll_joint_torch(sigma_obs, sigma_model, returns, params, N, M, sigma_eps=0.001):
@@ -156,7 +156,7 @@ def ll_joint_torch(sigma_obs, sigma_model, returns, params, N, M, sigma_eps=0.00
     """
     lr = ll_returns_torch(returns, params)
     lo = ll_option_torch(sigma_obs, sigma_model, sigma_eps)
-    return (N + M) / (2 * N) * lr + (N + M) / (2 * M) * lo
+    return ((N + M) / (2 * N)) * lr + ((N + M) / (2 * M)) * lo
 
 
 def Calibration_Loss(params, returns, sigma_obs, model, x, N, M):

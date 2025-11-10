@@ -202,7 +202,7 @@ def project_parameters(params):
     return torch.stack([omega, alpha, beta, gamma, lambda_param])
 
 
-def calibrate_de(model, dataset, popsize=100, max_iter=500, mutation=0.95,
+def calibrate_de(model, dataset, popsize=100, max_iter=500, mutation=0.8,
                  crossover=0.7, seed=42):
     """
     Calibrate GARCH parameters using Differential Evolution
@@ -296,7 +296,7 @@ def main():
             model, dataset,
             popsize=100,           # Population size
             max_iter=500,         # Maximum iterations
-            mutation=0.95,  # Mutation factor range
+            mutation=(0.5, 1.0),  # Mutation factor range
             crossover=0.7,        # Crossover probability
             seed=42,              # For reproducibility
         )

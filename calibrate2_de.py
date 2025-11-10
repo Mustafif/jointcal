@@ -5,6 +5,7 @@ import torch
 
 from cal_loss import Calibration_Loss
 from dataset2 import cal_dataset
+from hn import HestonNandiGARCH
 
 MODEL_PATH = "saved_models/varying_garch_dataset_50x30_5params_20250827/model.pt"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -13,7 +14,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class DifferentialEvolution:
     """PyTorch-based Differential Evolution optimizer for GARCH parameter calibration"""
 
-    def __init__(self, bounds, popsize=50, mutation=0.8, crossover=0.7, seed=None, device=None):
+    def __init__(self, bounds, popsize=50, mutation=0.95, crossover=0.7, seed=None, device=None):
         """
         Initialize Differential Evolution optimizer
 
@@ -54,11 +55,16 @@ class DifferentialEvolution:
         self.top_indices = []  # Track indices of top candidates
         self.top_params = []   # Track parameters of top candidates
 
-    def _initialize_population(self):
+    def _initialize_population(self, initial_guess=None):
         """Initialize population within bounds"""
         pop = torch.rand(self.popsize, self.num_params, device=self.device)
         # Scale to bounds
         pop = self.bounds[:, 0] + pop * (self.bounds[:, 1] - self.bounds[:, 0])
+
+        # If initial guess provided, use it for first individual
+        if initial_guess is not None:
+            pop[0] = torch.tensor(initial_guess, device=self.device)
+
         return pop
 
     def _enforce_bounds(self, candidate):
@@ -202,7 +208,7 @@ def project_parameters(params):
     return torch.stack([omega, alpha, beta, gamma, lambda_param])
 
 
-def calibrate_de(model, dataset, popsize=100, max_iter=500, mutation=0.8,
+def calibrate_de(model, dataset, popsize=100, max_iter=500, mutation=0.95,
                  crossover=0.7, seed=42):
     """
     Calibrate GARCH parameters using Differential Evolution
@@ -242,19 +248,27 @@ def calibrate_de(model, dataset, popsize=100, max_iter=500, mutation=0.8,
     print(f"Starting DE calibration: {M} options, {N} returns")
     print(f"Population size: {popsize}, Max iterations: {max_iter}")
 
+    # Initialize parameters using HN GARCH
+    hn_model = HestonNandiGARCH(all_returns.cpu().numpy())
+    hn_result = hn_model.fit()
+    initial_guess = hn_model.fitted_params
+
     # Define parameter bounds
     # [omega, alpha, beta, gamma, lambda]
     bounds = [
         (1e-7, 1e-6),    # omega: positive, small
-        (1.15e-6, 1.36e-6),      # alpha: [0,1]
-        (0.75, 0.85),      # beta: [0,1]
-        (1, 5),   # gamma: can be negative
+        (1e-6, 1e-5),    # alpha: small, positive
+        (0.7, 0.99),     # beta: close to 1
+        (0.1, 10.0),     # gamma: leverage effect
         (0.2, 0.5)      # lambda: risk premium
     ]
 
     # Initialize DE optimizer
     de = DifferentialEvolution(bounds, popsize=popsize, mutation=mutation,
                               crossover=crossover, seed=seed, device=device)
+
+    # Use HN GARCH parameters to initialize first individual in population
+    de.population[0] = torch.tensor(initial_guess, device=device)
 
     def objective_function(params):
         """Objective function for DE optimization"""
@@ -296,9 +310,10 @@ def main():
             model, dataset,
             popsize=100,           # Population size
             max_iter=500,         # Maximum iterations
-            mutation=(0.5, 1.0),  # Mutation factor range
+            mutation=0.95,  # Mutation factor range
             crossover=0.7,        # Crossover probability
             seed=42,              # For reproducibility
+
         )
 
         # Compare with true values
@@ -316,6 +331,15 @@ def main():
             'final_loss': convergence_history[-1] if convergence_history else None,
             'two_norm_error': two_norm
         }
+        import pandas as pd
+        # Table of calibrated and true parameters and their error
+        error_table = pd.DataFrame({
+            'Parameter': ['omega', 'alpha', 'beta', 'gamma', 'lambda'],
+            'Calibrated': calibrated_params,
+            'True': true_vals,
+            'Error': np.abs(calibrated_params - true_vals)
+        })
+        print(error_table)
 
         with open('calibrated_params_de.json', 'w') as f:
             json.dump(results, f, indent=2)
@@ -341,22 +365,6 @@ def main():
             print(f"Theoretical unconditional variance: {unconditional_var:.8f}")
             empirical_var = dataset.returns.var().item()
             print(f"Empirical returns variance: {empirical_var:.8f}")
-
-        # Plot convergence if matplotlib is available
-        try:
-            import matplotlib.pyplot as plt
-            plt.figure(figsize=(10, 6))
-            plt.plot(convergence_history)
-            plt.title('Differential Evolution Convergence')
-            plt.xlabel('Iteration')
-            plt.ylabel('Objective Function Value')
-            plt.yscale('log')
-            plt.grid(True)
-            plt.savefig('de_convergence.png', dpi=300, bbox_inches='tight')
-            print("📊 Convergence plot saved to de_convergence.png")
-        except ImportError:
-            print("📊 Matplotlib not available, skipping convergence plot")
-
     except Exception as e:
         print(f"❌ DE Calibration failed: {e}")
         import traceback

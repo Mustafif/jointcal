@@ -1,0 +1,90 @@
+{
+  "comparison_timestamp": "2025-11-10T21:44:25.473608",
+  "true_parameters": {
+    "omega": 1e-06,
+    "alpha": 1.33e-06,
+    "beta": 0.8,
+    "gamma": 5.0,
+    "lambda": 0.2
+  },
+  "common_settings": {
+    "popsize": 80,
+    "maxiter": 300,
+    "seed": 42
+  },
+  "custom_de": {
+    "success": true,
+    "parameters": {
+      "omega": 1.0000000116860974e-07,
+      "alpha": 9.999999974752427e-07,
+      "beta": 0.7067263126373291,
+      "gamma": 3.5465145111083984,
+      "lambda": 0.26698169112205505
+    },
+    "time_seconds": 118.90671515464783,
+    "l2_error": 1.4580146069635849,
+    "final_loss": 1317567488.0,
+    "convergence_history": [
+      1317570048.0,
+      1317570048.0,
+      1317569024.0,
+      1317568384.0,
+      1317568128.0,
+      1317568128.0,
+      1317567872.0,
+      1317567872.0,
+      1317567488.0,
+      1317567488.0,
+      1317567488.0,
+      1317567488.0,
+      1317567488.0,
+      1317567488.0,
+      1317567488.0,
+      1317567488.0,
+      1317567488.0,
+      1317567488.0
+    ],
+    "validation": {
+      "persistence": 0.7067273259162903,
+      "stationary": true,
+      "omega_positive": true
+    }
+  },
+  "scipy_de": {
+    "success": true,
+    "parameters": {
+      "omega": 1.3165713983809352e-07,
+      "alpha": 1.0205059593921406e-06,
+      "beta": 0.7044908600283228,
+      "gamma": 3.391315939780163,
+      "lambda": 0.4124967076297591
+    },
+    "time_seconds": 100.93588852882385,
+    "l2_error": 1.6254664721789391,
+    "final_loss": 1317569792.0,
+    "convergence_history": [
+      1317571840.0,
+      1317571840.0,
+      1317571840.0,
+      1317571584.0,
+      1317570048.0,
+      1317569792.0,
+      1317569920.0,
+      1317569408.0,
+      1317570432.0,
+      1317569792.0,
+      1317570176.0,
+      1317569792.0
+    ],
+    "validation": {
+      "persistence": 0.7044918805342822,
+      "stationary": true,
+      "omega_positive": true
+    }
+  },
+  "comparison": {
+    "accuracy_winner": "custom_de",
+    "speed_winner": "scipy_de",
+    "accuracy_improvement_percent": 10.30177294219332,
+    "speed_ratio": 1.178041991681602,
+    "custom_better_accuracy": 

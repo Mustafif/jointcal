@@ -1,0 +1,23 @@
+{
+  "true_parameters": {
+    "omega": 1e-06,
+    "alpha": 1.33e-06,
+    "beta": 0.8,
+    "gamma": 5.0,
+    "lambda": 0.2
+  },
+  "initial_guess_parameters": {
+    "omega": 1e-06,
+    "alpha": 1.36e-06,
+    "beta": 0.75,
+    "gamma": 1.000000052586914,
+    "lambda": 0.20000000304293067
+  },
+  "final_calibrated_parameters": {
+    "omega": 2.4900141033131916e-07,
+    "alpha": 1.011720877854692e-06,
+    "beta": 0.7050272985690538,
+    "gamma": 1.3186776167700114,
+    "lambda": 0.3903649078866086
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "omega": 1e-6,
+  "alpha": 1.33e-6,
+  "beta": 0.8,
+  "gamma": 5.0,
+  "lambda": 0.2
+}

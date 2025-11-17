@@ -30,8 +30,8 @@ def project_parameters(params):
         return np.array([omega, alpha, beta, gamma, lambda_param])
 
 
-def calibrate_scipy_de(model, dataset, popsize=100, maxiter=500, strategy='best1bin',
-                       mutation=(0.5, 2.0), recombination=0.7, seed=42,
+def calibrate_scipy_de(model, dataset, popsize, maxiter, strategy,
+                       mutation, recombination,
                        polish=False, atol=1e-6):
     """
     Calibrate GARCH parameters using SciPy's Differential Evolution
@@ -79,10 +79,10 @@ def calibrate_scipy_de(model, dataset, popsize=100, maxiter=500, strategy='best1
     # [omega, alpha, beta, gamma, lambda]
     bounds = [
         (1e-7, 1e-6),    # omega: positive, small
-        (1e-6, 1e-5),    # alpha: small, positive
+        (1.15e-6, 1.36e-6),    # alpha: small, positive
         (0.7, 0.99),     # beta: close to 1
-        (0.1, 5),     # gamma: leverage effect
-        (0.2, 0.5)       # lambda: risk premium
+        (0, 10),     # gamma: leverage effect
+        (0.2, 0.6)       # lambda: risk premium
     ]
 
     print(f"Parameter bounds: {bounds}")
@@ -157,7 +157,7 @@ def calibrate_scipy_de(model, dataset, popsize=100, maxiter=500, strategy='best1
     print(f"Iterations: {result.nit}")
     print(f"Function evaluations: {result.nfev}")
 
-    return best_params, convergence_history
+    return best_params, convergence_history, initial_guess
 
 
 # def main():

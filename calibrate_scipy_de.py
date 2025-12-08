@@ -8,7 +8,7 @@ from cal_loss import Calibration_Loss
 from hn import HestonNandiGARCH
 
 MODEL_PATH = "saved_models/varying_garch_dataset_50x30_5params_20250827/model.pt"
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "mps:0")
 
 
 def project_parameters(params):
@@ -17,22 +17,30 @@ def project_parameters(params):
         omega = torch.clamp(params[0], min=1e-8)
         alpha = torch.clamp(params[1], min=0.0, max=1.0)
         beta = torch.clamp(params[2], min=0.0, max=1.0)
-        gamma = params[3]        # can be negative
-        lambda_param = params[4] # no constraint
+        gamma = params[3]  # can be negative
+        lambda_param = params[4]  # no constraint
         return torch.stack([omega, alpha, beta, gamma, lambda_param])
     else:
         # Handle numpy arrays
         omega = np.clip(params[0], a_min=1e-8, a_max=None)
         alpha = np.clip(params[1], a_min=0.0, a_max=1.0)
         beta = np.clip(params[2], a_min=0.0, a_max=1.0)
-        gamma = params[3]        # can be negative
-        lambda_param = params[4] # no constraint
+        gamma = params[3]  # can be negative
+        lambda_param = params[4]  # no constraint
         return np.array([omega, alpha, beta, gamma, lambda_param])
 
 
-def calibrate_scipy_de(model, dataset, popsize, maxiter, strategy,
-                       mutation, recombination,
-                       polish=False, atol=1e-6):
+def calibrate_scipy_de(
+    model,
+    dataset,
+    popsize,
+    maxiter,
+    strategy,
+    mutation,
+    recombination,
+    polish=False,
+    atol=1e-6,
+):
     """
     Calibrate GARCH parameters using SciPy's Differential Evolution
 
@@ -58,8 +66,8 @@ def calibrate_scipy_de(model, dataset, popsize, maxiter, strategy,
         p.requires_grad = False  # freeze network
 
     # Precompute tensors
-    X_all = dataset.X.to(device)        # M x num_features
-    sigma_all = dataset.sigma.to(device) # M
+    X_all = dataset.X.to(device)  # M x num_features
+    sigma_all = dataset.sigma.to(device)  # M
     all_returns = dataset.returns.to(device)
     N = len(all_returns)
     M = len(dataset)
@@ -78,11 +86,11 @@ def calibrate_scipy_de(model, dataset, popsize, maxiter, strategy,
     # Define parameter bounds for SciPy DE
     # [omega, alpha, beta, gamma, lambda]
     bounds = [
-        (1e-7, 1e-6),    # omega: positive, small
-        (1.15e-6, 1.36e-6),    # alpha: small, positive
-        (0.7, 0.99),     # beta: close to 1
-        (0, 10),     # gamma: leverage effect
-        (0.2, 0.6)       # lambda: risk premium
+        (1e-7, 1e-6),  # omega: positive, small
+        (1.15e-6, 1.36e-6),  # alpha: small, positive
+        (0.7, 0.99),  # beta: close to 1
+        (0, 10),  # gamma: leverage effect
+        (0.2, 0.6),  # lambda: risk premium
     ]
 
     print(f"Parameter bounds: {bounds}")
@@ -109,8 +117,9 @@ def calibrate_scipy_de(model, dataset, popsize, maxiter, strategy,
 
         # Compute calibration loss
         with torch.no_grad():
-            loss = Calibration_Loss(params_proj, all_returns, sigma_all,
-                                  model, X_all, N, M)
+            loss = Calibration_Loss(
+                params_proj, all_returns, sigma_all, model, X_all, N, M
+            )
 
         return loss.cpu().item()
 
@@ -121,9 +130,11 @@ def calibrate_scipy_de(model, dataset, popsize, maxiter, strategy,
         convergence_history.append(current_loss)
 
         if iteration_count[0] % 50 == 0:
-            print(f"Iteration {iteration_count[0]:4d} | Best fitness: {current_loss:.6f} | "
-                  f"Params: omega={xk[0]:.2e}, alpha={xk[1]:.2e}, beta={xk[2]:.3f}, "
-                  f"gamma={xk[3]:.2f}, lambda={xk[4]:.2f}")
+            print(
+                f"Iteration {iteration_count[0]:4d} | Best fitness: {current_loss:.6f} | "
+                f"Params: omega={xk[0]:.2e}, alpha={xk[1]:.2e}, beta={xk[2]:.3f}, "
+                f"gamma={xk[3]:.2f}, lambda={xk[4]:.2f}"
+            )
 
     print("Starting SciPy DE optimization...")
 
@@ -139,8 +150,8 @@ def calibrate_scipy_de(model, dataset, popsize, maxiter, strategy,
         recombination=recombination,
         callback=callback,
         polish=polish,
-        init='latinhypercube',  # Good initialization strategy
-        disp=False  # We handle progress in callback
+        init="latinhypercube",  # Good initialization strategy
+        disp=False,  # We handle progress in callback
     )
 
     # Extract results

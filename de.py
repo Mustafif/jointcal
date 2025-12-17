@@ -30,7 +30,13 @@ from dataset2 import cal_dataset
 # Load model and dataset
 MODEL_PATH = "saved_models/varying_garch_dataset_50x30_5params_20250827/model.pt"
 LOADER_PATH = "loaders/loader.json"
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device(
+    "cuda"
+    if torch.cuda.is_available()
+    else "mps:0"
+    if torch.backends.mps.is_available()
+    else "cpu"
+)
 
 print("🚀 GARCH Parameter Calibration with Differential Evolution - Multi Dataset")
 print("=" * 75)

@@ -8,7 +8,13 @@ from cal_loss import Calibration_Loss
 from hn import HestonNandiGARCH
 
 MODEL_PATH = "saved_models/varying_garch_dataset_50x30_5params_20250827/model.pt"
-device = torch.device("cuda" if torch.cuda.is_available() else "mps:0")
+device = torch.device(
+    "cuda"
+    if torch.cuda.is_available()
+    else "mps:0"
+    if torch.backends.mps.is_available()
+    else "cpu"
+)
 
 
 def project_parameters(params):
@@ -88,9 +94,9 @@ def calibrate_scipy_de(
     bounds = [
         (1e-7, 1e-6),  # omega: positive, small
         (1.15e-6, 1.36e-6),  # alpha: small, positive
-        (0.7, 0.99),  # beta: close to 1
-        (0, 10),  # gamma: leverage effect
-        (0.2, 0.6),  # lambda: risk premium
+        (0.5, 0.99),  # beta: close to 1
+        (-10, 10),  # gamma: leverage effect
+        (0, 0.6),  # lambda: risk premium
     ]
 
     print(f"Parameter bounds: {bounds}")

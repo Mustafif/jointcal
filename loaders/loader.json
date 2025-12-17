@@ -3,10 +3,5 @@
     "dataset": "joint_dataset/scalable_hn_dataset_250x60.csv",
     "asset": "joint_dataset/assetprices.csv",
     "params": "true_params/1.json"
-  },
-  {
-    "dataset": "joint_dataset/2_scalable_hn_dataset_250x40.csv",
-    "asset": "joint_dataset/assetprices2.csv",
-    "params": "true_params/2.json"
   }
 ]

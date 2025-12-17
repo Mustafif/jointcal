@@ -75,7 +75,7 @@ def Calibration_Loss(params, returns, sigma_obs, model, x, N, M):
     sigma_obs = sigma_obs.to(params.device)
 
     # Negative log-likelihood for minimization
-    w1 = 0.5
+    w1 = 0.7
     w2 = 1 - w1
     joint_loss = ll_joint_torch(sigma_obs, sigma_model, returns, params, N, M)
     sigma_loss = torch.nn.MSELoss()(sigma_obs, sigma_model)

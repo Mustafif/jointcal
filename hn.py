@@ -160,9 +160,9 @@ class HestonNandiGARCH:
         bounds = [
             (1e-7, 1e-6),  # omega: positive, small
             (1.15e-6, 1.36e-6),  # alpha: small, positive
-            (0.7, 0.99),  # beta: close to 1
+            (0.5, 0.99),  # beta: close to 1
             (0, 10),  # gamma: leverage effect
-            (0.2, 0.6),  # lambda: risk premium
+            (0, 0.6),  # lambda: risk premium
         ]
 
         # result = differential_evolution(self._log_likelihood,

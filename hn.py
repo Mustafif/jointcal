@@ -127,8 +127,12 @@ class HestonNandiGARCH:
         z = np.random.randn(T)
         # Compute variance recursion
         for t in range(1, T):
-            h_prev = h[t-1]
-            h[t] = omega + beta*h_prev + alpha*(z[t-1] - gamma *np.sqrt(h_prev))**2
+            h_prev = h[t - 1]
+            h[t] = (
+                omega
+                + (beta * h_prev)
+                + (alpha * (z[t - 1] - gamma * np.sqrt(h_prev))) ** 2
+            )
 
         # Gaussian log-likelihood
         loglik = -0.5 * np.sum(np.log(2 * np.pi) + np.log(h) + z**2)
@@ -141,12 +145,12 @@ class HestonNandiGARCH:
         Fit parameters using numerical optimization (L-BFGS-B).
         """
         # Use standard GARCH(1,1) to generate starting values
-        garch11 = arch_model(self.returns, vol='GARCH', p=1, q=1, dist='normal')
+        garch11 = arch_model(self.returns, vol="GARCH", p=1, q=1, dist="normal")
         res = garch11.fit(disp="off")
 
-        omega0 = res.params['omega']
-        alpha0 = res.params['alpha[1]']
-        beta0 = res.params['beta[1]']
+        omega0 = res.params["omega"]
+        alpha0 = res.params["alpha[1]"]
+        beta0 = res.params["beta[1]"]
         gamma0 = 0.0
         lam0 = 0.0
 
@@ -154,11 +158,11 @@ class HestonNandiGARCH:
             initial_params = np.array([omega0, alpha0, beta0, gamma0, lam0])
 
         bounds = [
-            (1e-7, 1e-6),   # ω
-            (1.15e-6, 1.36e-6),    # α
-            (0.75, 0.85),   # β
-            (1,5),    # γ
-            (0.2, 0.5)     # λ
+            (1e-7, 1e-6),  # omega: positive, small
+            (1.15e-6, 1.36e-6),  # alpha: small, positive
+            (0.7, 0.99),  # beta: close to 1
+            (0, 10),  # gamma: leverage effect
+            (0.2, 0.6),  # lambda: risk premium
         ]
 
         # result = differential_evolution(self._log_likelihood,
@@ -168,10 +172,9 @@ class HestonNandiGARCH:
         #                                maxiter=500,
         #                                tol=1e-6)
 
-        result = minimize(self._log_likelihood,
-                          initial_params,
-                          method='L-BFGS-B',
-                          bounds=bounds)
+        result = minimize(
+            self._log_likelihood, initial_params, method="L-BFGS-B", bounds=bounds
+        )
 
         if result.success:
             self.omega, self.alpha, self.beta, self.gamma, self.lambda_ = result.x

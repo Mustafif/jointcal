@@ -1,6 +1,6 @@
 import torch
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "mps:0" if torch.backends.mps.is_available() else "cpu")
 
 
 def ll_option_torch(sigma_obs, sigma_model, sigma_eps=0.001):
@@ -49,9 +49,7 @@ def ll_returns_torch(returns, params):
     h = torch.stack(h_list)
 
     # Compute log-likelihood using standard-normal z
-    logik = -0.5 * torch.sum(
-        torch.log(torch.tensor(2) * torch.pi) + torch.log(h) + z**2
-    )
+    logik = -0.5 * torch.sum(torch.log(torch.tensor(2, device=device) * torch.pi) + torch.log(h) + z**2)
     return logik
 
 

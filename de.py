@@ -4,7 +4,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from numpy import mean, var
 from scipy.stats import kurtosis, skew
 
 

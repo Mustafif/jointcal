@@ -8,7 +8,7 @@ from cal_loss import Calibration_Loss
 from hn import HestonNandiGARCH
 
 MODEL_PATH = "saved_models/varying_garch_dataset_50x30_5params_20250827/model.pt"
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "mps:0")
 
 
 def project_parameters(params):

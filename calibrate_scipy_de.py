@@ -92,10 +92,10 @@ def calibrate_scipy_de(
     # Define parameter bounds for SciPy DE
     # [omega, alpha, beta, gamma, lambda]
     bounds = [
-        (1e-7, 1e-6),  # omega: positive, small
-        (1.15e-6, 1.36e-6),  # alpha: small, positive
+        (1e-7, 1e-5),  # omega: positive, small
+        (1.15e-6, 1.36e-5),  # alpha: small, positive
         (0.5, 0.99),  # beta: close to 1
-        (-10, 10),  # gamma: leverage effect
+        (0, 10),  # gamma: leverage effect
         (0, 0.6),  # lambda: risk premium
     ]
 
@@ -135,7 +135,7 @@ def calibrate_scipy_de(
         current_loss = objective_function(xk)
         convergence_history.append(current_loss)
 
-        if iteration_count[0] % 50 == 0:
+        if iteration_count[0] % 5 == 0:
             print(
                 f"Iteration {iteration_count[0]:4d} | Best fitness: {current_loss:.6f} | "
                 f"Params: omega={xk[0]:.2e}, alpha={xk[1]:.2e}, beta={xk[2]:.3f}, "

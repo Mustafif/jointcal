@@ -184,7 +184,7 @@ def Calibration_Loss(params, returns, sigma_obs, model, x, N, M):
     # loss = - (w1 * joint_loss) + w2 * sigma_loss
     # This is equivalent to maximizing (w1 * joint_loss - w2 * sigma_loss)
 
-    loss = (w1 * joint_loss) + (w2 * sigma_loss)
+    loss = -(w1 * joint_loss) + (w2 * sigma_loss)
 
     # Debug prints
     print(

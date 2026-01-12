@@ -213,13 +213,15 @@ def cal_dataset(filename, asset_filename):
     dataset = CalibrationDataset(data, returns)
     return dataset
 
-dataset = cal_dataset("joint_dataset/scalable_hn_dataset_250x60.csv", "joint_dataset/assetprices.csv")
-true_vals = np.array([1e-6, 1.33e-6, 0.8, 5, 0.2])
+if __name__ == '__main__':
+    # Quick diagnostics: run only when module executed as a script, not on import
+    dataset = cal_dataset("joint_dataset/scalable_hn_dataset_250x60.csv", "joint_dataset/assetprices.csv")
+    true_vals = np.array([1e-6, 1.33e-6, 0.8, 5, 0.2])
 
-two_norm = np.linalg.norm(np.asarray(dataset.target.numpy()) - np.asarray(true_vals), ord=2)
-norm = np.linalg.norm(np.asarray(true_vals), ord=2)
+    two_norm = np.linalg.norm(np.asarray(dataset.target.numpy()) - np.asarray(true_vals), ord=2)
+    norm = np.linalg.norm(np.asarray(true_vals), ord=2)
 
-inf_norm = np.linalg.norm(np.asarray(dataset.target.numpy()) - np.asarray(true_vals), ord=np.inf)
-print(f"Two-norm distance between predicted and true values: {two_norm}")
-print(f"Percentage Two-norm distance between predicted and true values: {two_norm/norm * 100}%")
-print(f"Infinity-norm distance between predicted and true values: {inf_norm}")
+    inf_norm = np.linalg.norm(np.asarray(dataset.target.numpy()) - np.asarray(true_vals), ord=np.inf)
+    print(f"Two-norm distance between predicted and true values: {two_norm}")
+    print(f"Percentage Two-norm distance between predicted and true values: {two_norm/norm * 100}%")
+    print(f"Infinity-norm distance between predicted and true values: {inf_norm}")

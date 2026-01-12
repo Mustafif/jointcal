@@ -46,12 +46,30 @@ def ll_returns_torch(returns, params, r_daily=0.0):
 
     # Initialize h[0] as unconditional variance
     # h_unc = (omega + alpha) / (1 - beta - alpha * gamma**2)
-    # We add epsilon to denominator for stability
-    h_curr = (omega + alpha) / (1 - beta - alpha * gamma**2 + 1e-8)
+
+    # Check stationarity for initialization
+    persistence = beta + alpha * gamma**2
+    if persistence < 0.999:
+        h_curr = (omega + alpha) / (1 - persistence + 1e-8)
+    else:
+        # Fallback to sample variance if non-stationary parameters
+        h_curr = torch.var(returns)
+
+    # Ensure positive variance
+    if h_curr < 1e-8 or torch.isnan(h_curr):
+        h_curr = torch.tensor(1e-6, device=returns.device)
 
     # Loop through time steps
     # Note: This loop is necessary because h_t depends on h_{t-1}
     for t in range(T):
+        # Stability check inside loop to prevent NaNs
+        if torch.isnan(h_curr) or torch.isinf(h_curr) or h_curr > 1e6:
+            # If variance explodes or becomes NaN, return very large negative log-likelihood (penalty)
+            return torch.tensor(-1e9, device=returns.device)
+
+        # Clamp variance to prevent division by zero
+        h_curr = torch.clamp(h_curr, min=1e-9)
+
         # Store current variance
         h_list.append(h_curr)
 
@@ -63,7 +81,7 @@ def ll_returns_torch(returns, params, r_daily=0.0):
         # Update variance for next step
         # h_{t+1} = omega + beta * h_t + alpha * (z_t - gamma * sqrt(h_t))^2
         h_curr = (
-            omega + (beta * h_curr) + (alpha * (z_t - gamma * torch.sqrt(h_curr))) ** 2
+            omega + (beta * h_curr) + alpha * (z_t - gamma * torch.sqrt(h_curr)) ** 2
         )
 
     # Stack lists into tensors
@@ -89,7 +107,20 @@ def ll_joint_torch(
     """
     lr = ll_returns_torch(returns, params, r_daily)
     lo = ll_option_torch(sigma_obs, sigma_model, sigma_eps)
-    return ((N + M) / (2 * N)) * lr + ((N + M) / (2 * M)) * lo
+
+    # Use Mean Log-Likelihoods to make them scale-invariant to dataset size
+    mean_lr = lr / N
+    mean_lo = lo / M
+
+    # Weighting scheme to balance the two objectives
+    # Returns likelihood is typically much larger in magnitude per point than options
+    # Previously we strongly downweighted returns (w_ret=0.05) to prioritize options.
+    # For testing, increase returns weight so returns influence calibration more.
+    # TODO: expose these weights as configurable hyperparameters.
+    w_ret = 0.5  # increased for testing — make configurable if desired
+    w_opt = 1.0
+
+    return w_ret * mean_lr + w_opt * mean_lo
 
 
 def Calibration_Loss(params, returns, sigma_obs, model, x, N, M):
@@ -166,29 +197,15 @@ def Calibration_Loss(params, returns, sigma_obs, model, x, N, M):
     # Negative log-likelihood for minimization
     # We want to maximize Joint Likelihood, so we minimize Negative Joint Likelihood
 
-    # Weights for the loss components
-    # w1 controls the weight of the joint likelihood (returns + options)
-    # w2 controls the weight of the MSE loss (options only)
-    w1 = 0.7
-    w2 = 1 - w1
-
     joint_loss = ll_joint_torch(
         sigma_obs, sigma_model, returns, params, N, M, r_daily, sigma_eps=0.01
     )
-    sigma_loss = torch.nn.MSELoss()(sigma_obs, sigma_model)
 
     # Total loss to minimize
     # Note: joint_loss is LogLikelihood (higher is better), so we negate it
-    # sigma_loss is MSE (lower is better), so we add it (or subtract from negative)
+    loss = -joint_loss
 
-    # loss = - (w1 * joint_loss) + w2 * sigma_loss
-    # This is equivalent to maximizing (w1 * joint_loss - w2 * sigma_loss)
-
-    loss = -(w1 * joint_loss) + (w2 * sigma_loss)
-
-    # Debug prints
-    print(
-        f"DEBUG: Joint LL: {joint_loss.item():.2f}, MSE: {sigma_loss.item():.6f}, Total: {loss.item():.2f}"
-    )
+    if torch.isnan(loss) or torch.isinf(loss):
+        return torch.tensor(1e9, device=params.device)
 
     return loss

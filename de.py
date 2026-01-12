@@ -170,13 +170,34 @@ for idx, config in enumerate(dataset_configs):
         params_scipy, history_scipy, initial_guess = calibrate_scipy_de(
             model=model,
             dataset=dataset,
-            popsize=50,  # Population size multiplier
-            maxiter=400,  # Maximum iterations
-            strategy="best1bin",  # DE strategy (fast and reliable)
+            popsize=10,  # Reduced population for quicker tests
+            maxiter=100,  # Reduced iterations for quicker tests
+            strategy="rand1bin",  # More exploratory strategy
             mutation=(0.5, 1.0),  # Adaptive mutation range
             recombination=0.7,  # Crossover probability
-            polish=False,  # Use L-BFGS-B for final refinement
+            polish=False,  # Use local refine steps instead of final polish
             atol=1e-6,  # Convergence tolerance
+            true_vals=true_vals,
+            # Debug controls for initial population evaluation (useful during development)
+            debug_init_pop=False,
+            # Local refinement (L-BFGS-B) after DE to enforce returns fit / local optimum
+            local_refine=True,
+            refine_w_ret=2.0,  # make returns strongly influence local refine
+            refine_maxiter=200,
+            refine_tol=1e-8,
+            # Local DE around a center (e.g., HN initial guess) to refine the global solution
+            local_de=True,
+            local_de_radius=0.2,
+            local_de_popsize=8,
+            local_de_maxiter=50,
+            local_de_strategy="rand1bin",
+            # Regularization to penalize extreme gamma/lambda and sigma-surface deviation
+            # (Tune these weights to control how strongly to pull solutions toward HN/initial)
+            gamma_reg_weight=1e-4,
+            gamma_reg_center="hn",
+            lambda_reg_weight=0.1,
+            lambda_reg_center="hn",
+            sigma_reg_weight=0.1,
         )
 
         # Calculate error

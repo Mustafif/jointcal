@@ -10,7 +10,7 @@ def read_data(file):
 
 
 def daily_log_returns(data):
-    return np.log(data[1:] / data[:-1]) * 100
+    return np.log(data[1:] / data[:-1])
 
 data = read_data(datafile)
 returns = daily_log_returns(data)

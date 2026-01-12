@@ -113,31 +113,55 @@ class HestonNandiGARCH:
 
     def _log_likelihood(self, params):
         """
-        Computes the *negative* log-likelihood for Heston–Nandi GARCH.
+        Computes the *negative* log-likelihood for Heston–Nandi GARCH using observed returns.
+
+        This implementation uses the observed returns to compute standardized residuals:
+            z_t = (r_t - λ * h_t) / sqrt(h_t)
+        and updates the variance recursion as:
+            h_{t+1} = ω + β * h_t + α * (z_t - γ * sqrt(h_t))^2
+
+        If parameters lead to non-stationary or numerically unstable variance paths,
+        a large penalty is returned to guide the optimizer away from such regions.
         """
         omega, alpha, beta, gamma, lambda_ = params
         r = self.returns
         T = len(r)
 
-        # Initialize conditional variance
+        # Stationarity check: avoid explosive variance recursion
+        persistence = beta + alpha * gamma ** 2
+        if persistence >= 0.999 or (1.0 - persistence) <= 1e-8:
+            return 1e9
+
+        # Initialize conditional variance (unconditional under stationarity)
         h = np.zeros(T)
-        # h[0] = np.var(r) if np.var(r) > 0 else 1e-6
-        h[0] = (omega + alpha) / (1 - beta - alpha * gamma**2 + 1e-8)
+        h[0] = (omega + alpha) / (1 - persistence + 1e-8)
 
-        z = np.random.randn(T)
-        # Compute variance recursion
-        for t in range(1, T):
-            h_prev = h[t - 1]
-            h[t] = (
-                omega
-                + (beta * h_prev)
-                + (alpha * (z[t - 1] - gamma * np.sqrt(h_prev))) ** 2
-            )
+        z = np.zeros(T)
 
-        # Gaussian log-likelihood
-        loglik = -0.5 * np.sum(np.log(2 * np.pi) + np.log(h) + z**2)
+        # Use observed returns to compute standardized residuals and update variance
+        for t in range(T):
+            h_curr = h[t]
 
-        # Return *negative* log-likelihood for minimization
+            # Basic numerical stability checks
+            if h_curr <= 0 or np.isnan(h_curr) or np.isinf(h_curr) or h_curr > 1e6:
+                # Penalize invalid/numerically unstable parameter combinations
+                return 1e9
+
+            # Standardized residual from observed return at time t
+            z[t] = (r[t] - lambda_ * h_curr) / (np.sqrt(h_curr) + 1e-8)
+
+            # Update next-period variance (if not at last observation)
+            if t < T - 1:
+                h[t + 1] = (
+                    omega
+                    + beta * h_curr
+                    + alpha * (z[t] - gamma * np.sqrt(h_curr)) ** 2
+                )
+
+        # Gaussian log-likelihood (sum over time)
+        loglik = -0.5 * np.sum(np.log(2 * np.pi) + np.log(h + 1e-8) + z ** 2)
+
+        # Return *negative* log-likelihood for minimization routines
         return -loglik
 
     def fit(self, initial_params=None):

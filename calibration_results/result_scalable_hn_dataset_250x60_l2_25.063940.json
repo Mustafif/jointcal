@@ -1,0 +1,560 @@
+{
+  "dataset_info": {
+    "dataset_path": "joint_dataset/scalable_hn_dataset_250x60.csv",
+    "asset_path": "joint_dataset/assetprices.csv",
+    "params_path": "true_params/1.json",
+    "dataset_name": "scalable_hn_dataset_250x60"
+  },
+  "parameter_sets": {
+    "true_parameters": {
+      "parameters": {
+        "omega": 1e-06,
+        "alpha": 1.33e-06,
+        "beta": 0.8,
+        "gamma": 5.0,
+        "lambda": 0.2
+      },
+      "moments_by_time": {
+        "10": {
+          "mean": 0.04579078485805977,
+          "variance": 0.00022097505464050628,
+          "skewness": -2.5887345959671135,
+          "kurtosis": 5.224571913212602
+        },
+        "50": {
+          "mean": 0.04928321615989095,
+          "variance": 6.016299007440962e-05,
+          "skewness": -4.947047051180014,
+          "kurtosis": 29.09666774164203
+        },
+        "100": {
+          "mean": 0.04981804427723168,
+          "variance": 3.5787160484917484e-05,
+          "skewness": -5.627255814721694,
+          "kurtosis": 44.9256418704847
+        },
+        "252": {
+          "mean": 0.049941373684171696,
+          "variance": 2.1976594068988048e-05,
+          "skewness": -4.684684524693877,
+          "kurtosis": 48.909225506932714
+        },
+        "365": {
+          "mean": 0.05002627547097387,
+          "variance": 1.8507215763111436e-05,
+          "skewness": -4.20337424114388,
+          "kurtosis": 48.262332775916335
+        },
+        "512": {
+          "mean": 0.05003059597528073,
+          "variance": 1.6323428313447727e-05,
+          "skewness": -3.6137096105351616,
+          "kurtosis": 44.414954163445245
+        }
+      }
+    },
+    "initial_guess": {
+      "parameters": {
+        "omega": NaN,
+        "alpha": NaN,
+        "beta": NaN,
+        "gamma": NaN,
+        "lambda": NaN
+      },
+      "moments_by_time": {
+        "10": {
+          "mean": NaN,
+          "variance": NaN,
+          "skewness": NaN,
+          "kurtosis": NaN
+        },
+        "50": {
+          "mean": NaN,
+          "variance": NaN,
+          "skewness": NaN,
+          "kurtosis": NaN
+        },
+        "100": {
+          "mean": NaN,
+          "variance": NaN,
+          "skewness": NaN,
+          "kurtosis": NaN
+        },
+        "252": {
+          "mean": NaN,
+          "variance": NaN,
+          "skewness": NaN,
+          "kurtosis": NaN
+        },
+        "365": {
+          "mean": NaN,
+          "variance": NaN,
+          "skewness": NaN,
+          "kurtosis": NaN
+        },
+        "512": {
+          "mean": NaN,
+          "variance": NaN,
+          "skewness": NaN,
+          "kurtosis": NaN
+        }
+      }
+    },
+    "calibrated": {
+      "parameters": {
+        "omega": 1.118148121098664e-10,
+        "alpha": 5.426490659682968e-07,
+        "beta": 0.9985105291444513,
+        "gamma": 29.998551209168994,
+        "lambda": 1.9983707556596289
+      },
+      "moments_by_time": {
+        "10": {
+          "mean": 0.043360160634271484,
+          "variance": 0.0006127204920722554,
+          "skewness": -0.11832070653060696,
+          "kurtosis": -0.6991885631756576
+        },
+        "50": {
+          "mean": 0.048792702894198396,
+          "variance": 0.0005168420807885553,
+          "skewness": -0.134729899455671,
+          "kurtosis": -0.08193894088363285
+        },
+        "100": {
+          "mean": 0.05075692480427316,
+          "variance": 0.0005344140404902897,
+          "skewness": -0.015069900986640771,
+          "kurtosis": 0.062178682932540585
+        },
+        "252": {
+          "mean": 0.051113650638656874,
+          "variance": 0.0005524825482596844,
+          "skewness": 0.01976049754109074,
+          "kurtosis": 0.0075528750529714195
+        },
+        "365": {
+          "mean": 0.05111282050728477,
+          "variance": 0.0005604641275449457,
+          "skewness": -0.01495806657865466,
+          "kurtosis": 0.03707601899882196
+        },
+        "512": {
+          "mean": 0.05114842604769976,
+          "variance": 0.0005569953720338721,
+          "skewness": 0.0108417327413773,
+          "kurtosis": 0.07302087260611145
+        }
+      }
+    }
+  },
+  "metrics": {
+    "l2_error_final": 25.063940359856414,
+    "l2_error_initial": NaN,
+    "error_improvement": NaN,
+    "persistence": 898.5726808945665,
+    "is_stationary": false
+  },
+  "convergence_history": [
+    {
+      "iteration": 1,
+      "loss": 835.260009765625
+    },
+    {
+      "iteration": 2,
+      "loss": 835.260009765625
+    },
+    {
+      "iteration": 3,
+      "loss": 835.260009765625
+    },
+    {
+      "iteration": 4,
+      "loss": 835.260009765625
+    },
+    {
+      "iteration": 5,
+      "loss": 830.402587890625
+    },
+    {
+      "iteration": 6,
+      "loss": 830.402587890625
+    },
+    {
+      "iteration": 7,
+      "loss": 830.402587890625
+    },
+    {
+      "iteration": 8,
+      "loss": 826.0299682617188
+    },
+    {
+      "iteration": 9,
+      "loss": 824.005859375
+    },
+    {
+      "iteration": 10,
+      "loss": 824.005859375
+    },
+    {
+      "iteration": 11,
+      "loss": 824.005859375
+    },
+    {
+      "iteration": 12,
+      "loss": 822.9276123046875
+    },
+    {
+      "iteration": 13,
+      "loss": 822.9276123046875
+    },
+    {
+      "iteration": 14,
+      "loss": 822.357666015625
+    },
+    {
+      "iteration": 15,
+      "loss": 818.9362182617188
+    },
+    {
+      "iteration": 16,
+      "loss": 818.494873046875
+    },
+    {
+      "iteration": 17,
+      "loss": 818.494873046875
+    },
+    {
+      "iteration": 18,
+      "loss": 818.494873046875
+    },
+    {
+      "iteration": 19,
+      "loss": 816.0477905273438
+    },
+    {
+      "iteration": 20,
+      "loss": 816.0477905273438
+    },
+    {
+      "iteration": 21,
+      "loss": 816.0477905273438
+    },
+    {
+      "iteration": 22,
+      "loss": 815.52197265625
+    },
+    {
+      "iteration": 23,
+      "loss": 814.4132690429688
+    },
+    {
+      "iteration": 24,
+      "loss": 811.917724609375
+    },
+    {
+      "iteration": 25,
+      "loss": 811.089111328125
+    },
+    {
+      "iteration": 26,
+      "loss": 811.089111328125
+    },
+    {
+      "iteration": 27,
+      "loss": 811.089111328125
+    },
+    {
+      "iteration": 28,
+      "loss": 809.91748046875
+    },
+    {
+      "iteration": 29,
+      "loss": 809.91748046875
+    },
+    {
+      "iteration": 30,
+      "loss": 809.7578735351562
+    },
+    {
+      "iteration": 31,
+      "loss": 809.6390380859375
+    },
+    {
+      "iteration": 32,
+      "loss": 809.6390380859375
+    },
+    {
+      "iteration": 33,
+      "loss": 809.6390380859375
+    },
+    {
+      "iteration": 34,
+      "loss": 809.5665893554688
+    },
+    {
+      "iteration": 35,
+      "loss": 808.6844482421875
+    },
+    {
+      "iteration": 36,
+      "loss": 808.4462890625
+    },
+    {
+      "iteration": 37,
+      "loss": 808.4462890625
+    },
+    {
+      "iteration": 38,
+      "loss": 808.4462890625
+    },
+    {
+      "iteration": 39,
+      "loss": 808.4462890625
+    },
+    {
+      "iteration": 40,
+      "loss": 808.4462890625
+    },
+    {
+      "iteration": 41,
+      "loss": 808.4462890625
+    },
+    {
+      "iteration": 42,
+      "loss": 808.4462890625
+    },
+    {
+      "iteration": 43,
+      "loss": 808.2854614257812
+    },
+    {
+      "iteration": 44,
+      "loss": 808.2854614257812
+    },
+    {
+      "iteration": 45,
+      "loss": 808.2854614257812
+    },
+    {
+      "iteration": 46,
+      "loss": 808.0369873046875
+    },
+    {
+      "iteration": 47,
+      "loss": 808.0369873046875
+    },
+    {
+      "iteration": 48,
+      "loss": 808.0369873046875
+    },
+    {
+      "iteration": 49,
+      "loss": 808.0028686523438
+    },
+    {
+      "iteration": 50,
+      "loss": 808.0028686523438
+    },
+    {
+      "iteration": 51,
+      "loss": 808.0028686523438
+    },
+    {
+      "iteration": 52,
+      "loss": 807.8781127929688
+    },
+    {
+      "iteration": 53,
+      "loss": 807.8582763671875
+    },
+    {
+      "iteration": 54,
+      "loss": 807.8582763671875
+    },
+    {
+      "iteration": 55,
+      "loss": 807.8582763671875
+    },
+    {
+      "iteration": 56,
+      "loss": 807.7673950195312
+    },
+    {
+      "iteration": 57,
+      "loss": 807.7673950195312
+    },
+    {
+      "iteration": 58,
+      "loss": 807.7673950195312
+    },
+    {
+      "iteration": 59,
+      "loss": 807.7673950195312
+    },
+    {
+      "iteration": 60,
+      "loss": 807.7548828125
+    },
+    {
+      "iteration": 61,
+      "loss": 807.7548828125
+    },
+    {
+      "iteration": 62,
+      "loss": 807.7548828125
+    },
+    {
+      "iteration": 63,
+      "loss": 807.7548828125
+    },
+    {
+      "iteration": 64,
+      "loss": 807.7548828125
+    },
+    {
+      "iteration": 65,
+      "loss": 807.7548828125
+    },
+    {
+      "iteration": 66,
+      "loss": 807.7548828125
+    },
+    {
+      "iteration": 67,
+      "loss": 807.7548828125
+    },
+    {
+      "iteration": 68,
+      "loss": 807.7505493164062
+    },
+    {
+      "iteration": 69,
+      "loss": 807.7186889648438
+    },
+    {
+      "iteration": 70,
+      "loss": 807.7103271484375
+    },
+    {
+      "iteration": 71,
+      "loss": 807.7068481445312
+    },
+    {
+      "iteration": 72,
+      "loss": 807.699951171875
+    },
+    {
+      "iteration": 73,
+      "loss": 807.699951171875
+    },
+    {
+      "iteration": 74,
+      "loss": 807.699951171875
+    },
+    {
+      "iteration": 75,
+      "loss": 807.699951171875
+    },
+    {
+      "iteration": 76,
+      "loss": 807.699951171875
+    },
+    {
+      "iteration": 77,
+      "loss": 807.6854248046875
+    },
+    {
+      "iteration": 78,
+      "loss": 807.6854248046875
+    },
+    {
+      "iteration": 79,
+      "loss": 807.6854248046875
+    },
+    {
+      "iteration": 80,
+      "loss": 807.6854248046875
+    },
+    {
+      "iteration": 81,
+      "loss": 807.6854248046875
+    },
+    {
+      "iteration": 82,
+      "loss": 807.6854248046875
+    },
+    {
+      "iteration": 83,
+      "loss": 807.6854248046875
+    },
+    {
+      "iteration": 84,
+      "loss": 807.6854248046875
+    },
+    {
+      "iteration": 85,
+      "loss": 807.6854248046875
+    },
+    {
+      "iteration": 86,
+      "loss": 807.6837768554688
+    },
+    {
+      "iteration": 87,
+      "loss": 807.676513671875
+    },
+    {
+      "iteration": 88,
+      "loss": 807.676513671875
+    },
+    {
+      "iteration": 89,
+      "loss": 807.676513671875
+    },
+    {
+      "iteration": 90,
+      "loss": 807.67431640625
+    },
+    {
+      "iteration": 91,
+      "loss": 807.6741943359375
+    },
+    {
+      "iteration": 92,
+      "loss": 807.6712646484375
+    },
+    {
+      "iteration": 93,
+      "loss": 807.6712646484375
+    },
+    {
+      "iteration": 94,
+      "loss": 807.6712646484375
+    },
+    {
+      "iteration": 95,
+      "loss": 807.6712646484375
+    },
+    {
+      "iteration": 96,
+      "loss": 807.6712646484375
+    },
+    {
+      "iteration": 97,
+      "loss": 807.6712646484375
+    },
+    {
+      "iteration": 98,
+      "loss": 807.6703491210938
+    },
+    {
+      "iteration": 99,
+      "loss": 807.670166015625
+    },
+    {
+      "iteration": 100,
+      "loss": 807.670166015625
+    }
+  ]
+}
